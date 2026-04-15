@@ -21,7 +21,7 @@ from reportlab.lib.units import inch
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'mysecretkey'
 
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL", "sqlite:///app.db")
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 
@@ -152,6 +152,21 @@ class PlateletResult(db.Model):
 
 with app.app_context():
     db.create_all()
+
+    if not User.query.filter_by(username="admin").first():
+        hashed_password = bcrypt.generate_password_hash("admin").decode('utf-8')
+
+        admin = User(
+            username="admin",
+            email="admin@system.local",
+            password=hashed_password,
+            role="Administrador"
+        )
+
+        db.session.add(admin)
+        db.session.commit()
+
+        print("Admin creado: admin / admin")
 
 # ---------------------------------
 # LOGIN

@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Dashboard Inteligente</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='img/icono.png') }}"
+      type="image/x-icon"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <header class="navbar">
+      <div class="logo">🧬 Plaquetas AI</div>
+
+      <nav>
+        <a href="/index" class="button">🧬 Nuevo Diagnóstico</a>
+        <a href="/results" class="button">📄 Resultados</a>
+        <a class="button4">👤 Usuario: {{ current_user.username }}</a>
+        <a href="/logout" class="button2">🚪Cerrar Sesión</a>
+      </nav>
+    </header>
+    <div class="main-content-index">
+      <h1 class="title">Sistema de detección automática de plaquetas</h1>
+      <div class="container">
+        <div class="grid">
+          <!-- 📊 GRÁFICO LINEAL -->
+          <div class="card">
+            <h3>Evolución de Plaquetas</h3>
+            <canvas id="lineChart"></canvas>
+          </div>
+
+          <!-- 📊 GRÁFICO PIE -->
+          <div class="card">
+            <h3>Distribución de Diagnósticos</h3>
+            <canvas id="pieChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 🔘 FOOTER -->
+    <footer class="footer">
+      Sistema de detección automática de plaquetas mediante visión computacional
+      <br />
+      Universidad Señor de Sipán – Ingeniería de Sistemas <br />
+      2026<br />
+      José Carlos Laynes Castillo - Josué Enoc Espinoza Purisaca
+    </footer>
+
+    <script>
+      const labels = [
+          {% for r in results %}
+              "{{ r.analysis_date.strftime('%d/%m') }}",
+          {% endfor %}
+      ];
+
+      const dataValues = [
+          {% for r in results %}
+              {{ r.platelets_estimated }},
+          {% endfor %}
+      ];
+
+      // 📈 LINE CHART
+      new Chart(document.getElementById('lineChart'), {
+          type: 'line',
+          data: {
+              labels: labels,
+              datasets: [{
+                  label: 'Plaquetas (µL)',
+                  data: dataValues
+              }]
+          }
+      });
+
+      // 📊 PIE CHART
+      let normal = 0, leve = 0, dengue = 0, severo = 0;
+
+      {% for r in results %}
+          {% if r.dengue_status == "Normal" %}
+              normal++;
+          {% elif r.dengue_status == "Riesgo leve" %}
+              leve++;
+          {% elif r.dengue_status == "Posible dengue" %}
+              dengue++;
+          {% else %}
+              severo++;
+          {% endif %}
+      {% endfor %}
+
+      new Chart(document.getElementById('pieChart'), {
+          type: 'pie',
+          data: {
+              labels: ['Normal', 'Riesgo leve', 'Posible dengue', 'Severo'],
+              datasets: [{
+                  data: [normal, leve, dengue, severo]
+              }]
+          }
+      });
+    </script>
+  </body>
+</html>

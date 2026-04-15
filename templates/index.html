@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Conteo de Plaquetas</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='img/icono.png') }}"
+      type="image/x-icon"
+    />
+  </head>
+
+  <body class="body1">
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if
+    messages %}
+    <div class="flash-messages">
+      {% for category, message in messages %}
+      <div class="alert alert-{{ category }} flash-message">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %} {% endwith %}
+
+    <header class="navbar">
+      <div class="logo">🧬 Plaquetas AI</div>
+      <nav>
+          <a href="/dashboard" class="button">📊 Inicio</a>
+          <a href="/results" class="button">📄 Resultados</a>
+          {% if current_user.role == "Administrador" %}
+            <a href="/register" class="button">⚙️Registrar Usuario</a>
+          {% endif %} 
+          <a class="button4" >👤 Usuario: {{ current_user.username }}</a>
+          <a href="/logout" class="button2">🚪Cerrar Sesión</a>
+      </nav>
+    </header>
+
+    <div class="main-content">
+        
+      <h1 class="title">Sistema de detección automática de plaquetas</h1>
+      <h2 class="subtitle"> YOLOv8 </h2>
+        <div id="mensaje" class="mensaje"></div>
+        <div class="patient-form">
+            <input  type="text" id="dni" placeholder="DNI" maxlength="8" pattern="\d{8}" inputmode="numeric"/>            <button type="button" class="btn buscar" onclick="buscarPaciente()">Buscar</button>
+            <input type="text" id="nombres" placeholder="Nombres">
+            <input type="text" id="apellidos" placeholder="Apellidos">
+            <button type="button" class="btn registrar" onclick="registrarPaciente()">Registrar</button>
+            <button id="btnEditar" type="button" class="btn editar" onclick="editarPaciente()">Editar</button>
+        </div>
+      <div class="container">
+        <form id="uploadForm">
+          <h2>Sube una imagen</h2>
+
+          <input type="file" id="imageUpload" accept="image/*" required /><br />
+
+          <button type="submit">Contar Plaquetas</button>
+        </form>
+
+        <div class="image-preview" id="imagePreview">
+          <img
+            id="defaultImage"
+            src="/static/img/not-img-muestra.jpg"
+            alt="Imagen predeterminada"
+          />
+
+          <img
+            id="previewImage"
+            src="#"
+            alt="Imagen seleccionada"
+            style="display: none"
+          />
+
+          <div
+            id="loadingSpinner"
+            class="loadingio-spinner-spinner-2by998twmg8"
+            style="display: none"
+          >
+            <div class="ldio-yzaezf3dcmj">
+              <div></div>
+              <div></div>
+              <div></div>
+              <div></div>
+              <div></div>
+              <div></div>
+              <div></div>
+              <div></div>
+              <div></div>
+              <div></div>
+              <div></div>
+              <div></div>
+            </div>
+          </div>
+        </div>
+        <div class="diagnosis-card">
+          <h3>Resultado del Análisis</h3>
+          <p>
+            <span>Número de Plaquetas:</span> <span id="plateletCount"></span>
+          </p>
+
+          <p>
+            <span>Plaquetas estimadas:</span>
+            <span id="plateletEstimated"></span> / µL
+          </p>
+
+          <p><span>Dengue:</span> <span id="dengueStatus"></span></p>
+        </div>
+      </div>
+
+      <div class="buttons-container">
+        <a href="{{ url_for('index') }}" class="button3"
+          >Realizar nuevo Diagnóstico</a
+        >
+      </div>
+    </div>
+    <script>
+      document
+        .getElementById("imageUpload")
+        .addEventListener("change", function () {
+          const file = this.files[0];
+
+          if (file) {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+              document.getElementById("defaultImage").style.display = "none";
+
+              document.getElementById("previewImage").src = e.target.result;
+
+              document.getElementById("previewImage").style.display = "block";
+            };
+
+            reader.readAsDataURL(file);
+          }
+        });
+
+        
+
+      document.getElementById("uploadForm").onsubmit = async function (e) {
+        e.preventDefault();
+
+        if (!window.patientId) {
+            mostrarMensaje("Debes seleccionar o registrar un paciente");
+            return;
+        }
+
+        const fileInput = document.getElementById("imageUpload").files[0];
+
+        if (!fileInput) {
+            mostrarMensaje("Selecciona una imagen");
+            return;
+        }
+    
+        const formData = new FormData();
+
+        formData.append("patient_id", window.patientId);
+
+        formData.append("image", fileInput);
+
+        document.getElementById("loadingSpinner").style.display = "flex";
+
+        document.getElementById("previewImage").classList.add("blur");
+
+        try {
+          const response = await fetch("/count-platelets", {
+            method: "POST",
+
+            body: formData,
+          });
+
+          const data = await response.json();
+
+          console.log(data);
+
+          if (data.error) {
+            showSystemAlert(data.error);
+            document.getElementById("loadingSpinner").style.display = "none";
+            document.getElementById("previewImage").classList.remove("blur");
+            return;
+          }
+
+          const plateletCount = data.platelets_detected;
+
+          const plateletsEstimated = data.estimated_platelets_per_ul;
+
+          const dengueStatus = data.dengue_status;
+
+          const processedImage = data.processed_image;
+
+          const dengueStatusElement = document.getElementById("dengueStatus");
+
+          const estimatedElement = document.getElementById("plateletEstimated");
+
+          if (plateletsEstimated >= 150000) {
+            estimatedElement.style.color = "#27ae60";
+          } else if (plateletsEstimated >= 100000) {
+            estimatedElement.style.color = "#f1c40f";
+          } else if (plateletsEstimated >= 50000) {
+            estimatedElement.style.color = "#e67e22";
+          } else {
+            estimatedElement.style.color = "#e74c3c";
+          }
+
+          dengueStatusElement.innerText = dengueStatus;
+
+          dengueStatusElement.style.fontWeight = "bold";
+
+          if (dengueStatus === "Normal") {
+            dengueStatusElement.style.color = "#27ae60";
+          } else if (dengueStatus === "Riesgo leve") {
+            dengueStatusElement.style.color = "#f1c40f";
+          } else if (dengueStatus === "Posible dengue") {
+            dengueStatusElement.style.color = "#e67e22";
+          } else {
+            dengueStatusElement.style.color = "#e74c3c";
+          }
+
+          document.getElementById("plateletCount").innerText = plateletCount;
+
+          document.getElementById("dengueStatus").innerText = dengueStatus;
+
+          document.getElementById("plateletEstimated").innerText =
+            plateletsEstimated;
+
+          document.getElementById("previewImage").src = processedImage;
+
+          document.getElementById("loadingSpinner").style.display = "none";
+
+          document.getElementById("previewImage").classList.remove("blur");
+        } catch (error) {
+          console.error("Error:", error);
+
+          document.getElementById("loadingSpinner").style.display = "none";
+
+          document.getElementById("previewImage").classList.remove("blur");
+        }
+      };
+
+      setTimeout(function () {
+        const flashMessages = document.querySelectorAll(".flash-message");
+
+        flashMessages.forEach(function (message) {
+          message.style.transition = "opacity 0.5s ease";
+
+          message.style.opacity = "0";
+
+          setTimeout(() => message.remove(), 500);
+        });
+      }, 3000);
+
+      function showSystemAlert(message) {
+        const alertBox = document.getElementById("systemAlert");
+        const alertMessage = document.getElementById("alertMessage");
+        alertMessage.innerText = message;
+        alertBox.style.display = "block";
+        setTimeout(function () {
+          alertBox.style.display = "none";
+        }, 3500);
+      }
+
+      async function buscarPaciente() {
+
+            let dni = document.getElementById("dni").value;
+
+            if (dni.length !== 8) {
+                mostrarMensaje("El DNI debe tener 8 dígitos");
+                return;
+            }
+
+            let res = await fetch(`/api/patient/${dni}`);
+
+            if (res.status === 404) {
+                mostrarMensaje("DNI no encontrado");
+                return;
+            }
+
+            let data = await res.json();
+
+            document.getElementById("nombres").value = data.nombres;
+            document.getElementById("apellidos").value = data.apellidos;
+
+            window.patientId = data.id;
+
+            document.getElementById("dni").disabled = true;
+        }
+
+
+
+        async function registrarPaciente() {
+
+            let dni = document.getElementById("dni").value;
+            let nombres = document.getElementById("nombres").value;
+            let apellidos = document.getElementById("apellidos").value;
+
+            if (!dni || !nombres || !apellidos) {
+                mostrarMensaje("Completa todos los campos");
+                return;
+            }
+
+            let res = await fetch('/api/patient', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({dni, nombres, apellidos})
+            });
+
+            let data = await res.json();
+
+            if (data.error) {
+                mostrarMensaje(data.error);
+                return;
+            }
+
+            mostrarMensaje("Paciente registrado correctamente", "success");
+
+            window.patientId = data.id;
+        }
+
+        function mostrarMensaje(texto, tipo="error") {
+
+            let div = document.getElementById("mensaje");
+
+            div.innerText = texto;
+            div.className = "mensaje " + tipo;
+            div.style.display = "block";
+
+            setTimeout(() => {
+                div.style.display = "none";
+            }, 3000);
+        }
+
+    async function editarPaciente() {
+
+        if (!window.patientId) {
+            mostrarMensaje("Primero busca un paciente");
+            return;
+        }
+
+        let nombres = document.getElementById("nombres").value;
+        let apellidos = document.getElementById("apellidos").value;
+
+        if (!nombres || !apellidos) {
+            mostrarMensaje("Completa los campos");
+            return;
+        }
+
+        let res = await fetch(`/api/patient/${window.patientId}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({nombres, apellidos})
+        });
+
+        let data = await res.json();
+
+        if (data.error) {
+            mostrarMensaje(data.error);
+            return;
+        }
+
+        mostrarMensaje("Paciente actualizado", "success");
+    }
+
+    document.getElementById("dni").addEventListener("input", function () {
+        this.value = this.value.replace(/\D/g, ''); // solo números
+    });
+    
+    </script>
+
+    <div id="systemAlert" class="system-alert">
+      <span id="alertMessage"></span>
+    </div>
+
+    <footer class="footer">
+      Sistema de detección automática de plaquetas mediante visión computacional
+      <br />
+      Universidad Señor de Sipán – Ingeniería de Sistemas <br />
+      2026<br />
+      José Carlos Laynes Castillo - Josué Enoc Espinoza Purisaca
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <title>Iniciar Sesión</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='img/icono.png') }}" type="image/x-icon">
+  </head>
+  <body class="body1">
+    <h1 class="title-login">Sistema de detección automática de plaquetas</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div id="flash-data" style="display:none;">
+      {% for category, message in messages %}
+      <div data-category="{{ category }}" class="flash-message">
+          {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+    
+    <div class="login-container">
+        <h1>Iniciar sesión</h1>
+        <form method="POST" class="login-form">
+          <label for="username">Nombre de Usuario:</label>
+          <input type="text" id="username" name="username" autocomplete="username" required><br>
+
+          <label for="password">Contraseña:</label>
+          <input type="password" id="password" name="password" autocomplete="current-password" required><br>
+
+            <button type="submit">Iniciar Sesión</button>
+        </form>
+    </div>
+    <footer class="footer">
+
+        Sistema de detección automática de plaquetas mediante visión computacional <br>
+        Universidad Señor de Sipán – Ingeniería de Sistemas <br>
+        José Carlos Laynes Castillo - Josué Enoc Espinoza Purisaca
+
+    </footer>
+    <script>
+      function showSystemAlert(message,type="success"){
+        const alertBox = document.getElementById("systemAlert");
+        const alertMessage = document.getElementById("alertMessage");
+        
+        alertMessage.innerText = message;
+        alertBox.className = "system-alert " + type;
+        alertBox.style.display = "block";
+
+        setTimeout(function(){
+            alertBox.style.display = "none";
+        },3500);
+      }
+
+      document.addEventListener("DOMContentLoaded", function(){
+        const flashMessages = document.querySelectorAll("#flash-data .flash-message");
+        
+        flashMessages.forEach(function(msg){
+          const message = msg.innerText;
+          const category = msg.dataset.category;
+          showSystemAlert(message, category);
+        });
+      });
+    </script>
+
+    <div id="systemAlert" class="system-alert">
+        <span id="alertMessage"></span>
+    </div>
+  </body>
+</html>

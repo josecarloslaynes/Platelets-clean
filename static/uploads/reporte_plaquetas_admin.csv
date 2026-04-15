@@ -1,0 +1,14 @@
+﻿N° Registro;Imagen Analizada;Fecha de Análisis;Conteo de Plaquetas Detectadas;Estimación de Plaquetas (por µL);Diagnóstico de Dengue
+1;Im075_0_jpg.rf.9d659676f019810aeb5837571aa68a26.jpg;14/04/2026 01:40;2;30000;Dengue severo
+2;233_jpg.rf.2728cd9994005049ac3de4d72c8147b7.jpg;14/04/2026 00:57;10;150000;Normal
+3;7_jpg.rf.4a286dcbc4455f514bd88a92319f736a.jpg;14/04/2026 00:45;9;135000;Riesgo leve
+4;Im039_0_jpg.rf.98d616cb2f11bf84d72d16fe1cbf4ac4.jpg;14/04/2026 00:38;34;510000;Normal
+5;84.rf.652fc9c1a65f0796c0680d7ce1b602c5.jpg;13/04/2026 23:36;14;210000;Normal
+6;Im060_1_jpg.rf.dbc330d2f32a692c47e4fffbdae983c5.jpg;13/04/2026 22:54;7;105000;Riesgo leve
+7;Im038_0_jpg.rf.c851abe8fe60237f413d4c5bf36b897c.jpg;13/04/2026 22:53;26;390000;Normal
+8;76_jpg.rf.5b205f1393c23c71d64f56fd1853b2cd.jpg;13/04/2026 22:43;8;120000;Riesgo leve
+9;Im052_1_jpg.rf.4885489d6a7cf6cde82bdaa6470900d3.jpg;13/04/2026 22:43;3;45000;Dengue severo
+10;Im036_0_jpg.rf.dd3b1f5bf8a562eb3c02f31db79448ff.jpg;13/04/2026 22:19;24;360000;Normal
+11;Im040_0_jpg.rf.cc6e6036b9db4f3f72922bddfdc20b36.jpg;13/04/2026 18:18;45;675000;Normal
+12;Im037_0_jpg.rf.ef5543d81888fbd8ca4617a95e14f969.jpg;13/04/2026 17:46;5;75000;Posible dengue
+13;Im036_0_jpg.rf.dd3b1f5bf8a562eb3c02f31db79448ff.jpg;13/04/2026 17:45;24;360000;Normal

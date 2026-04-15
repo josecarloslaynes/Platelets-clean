@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Resultados de Conteo de Plaquetas</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <link rel="icon" href="{{ url_for('static', filename='img/icono.png') }}" type="image/x-icon" />
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" />
+    <!-- jQuery y DataTables JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+  </head>
+
+  <body class="body1">
+        {% with messages = get_flashed_messages(with_categories=true) %} {% if
+        messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} flash-message">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %} {% endwith %}
+
+        <header class="navbar">
+            <div class="logo">🧬 Plaquetas AI</div>
+            <nav>
+                <a href="/dashboard" class="button">📊 Inicio</a>
+                <a href="/index" class="button">🧬 Nuevo Diagnostico</a>
+                {% if current_user.role == "Administrador" %}
+                    <a href="/register" class="button">⚙️Registrar Usuario</a>
+                {% endif %} 
+                <a class="button4" >👤 Usuario: {{ current_user.username }}</a>
+                <a href="/logout" class="button2">🚪Cerrar Sesión</a>
+            </nav>
+        </header>
+
+        <div class="main-content2">
+            <h1 class="title">Resultados de Plaquetas</h1>
+            <div class="table-wrapper" style="display: flex; justify-content: center; padding: 20px" >
+                <div style="width: 1500%">
+                    <table id="resultsTable" class="display" style="width: 100%">
+                        <thead>
+                            <tr>
+                                <th>DNI</th>
+                                <th>Paciente</th>
+                                <th>Fecha y Hora</th>
+                                <th>Imagen</th>
+                                <th>Conteo de Plaquetas</th>
+                                <th>Plaquetas estimadas / µL</th>
+                                <th>Dengue</th>
+                                <th>Reporte PDF</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for result in results %}
+                        <tr>
+                            <td>{{ result.patient.dni }}</td>
+                            <td>{{ result.patient.nombres }} {{ result.patient.apellidos }}</td>
+                            <td>{{ result.analysis_date.strftime("%d/%m/%Y %H:%M") }}</td>
+                            <td>
+                            <img
+                                src="{{ url_for('static', filename='uploads/detected_' + result.image_filename) }}"
+                                width="150"
+                                class="preview-img"
+                                onclick="showImage(this.src)"
+                            />
+                            </td>
+                            <td>{{ result.platelet_count }}</td>
+                            <td>{{ result.platelets_estimated }}</td>
+                            <td>{{ result.dengue_status }}</td>
+                            <td>
+                            <a
+                                href="{{ url_for('export_pdf', result_id=result.id) }}"
+                                class="button"
+                            >
+                                Descargar PDF
+                            </a>
+                            </td>
+                        </tr>
+                        <div id="imageModal" class="modal">
+                            <span class="close">&times;</span>
+
+                            <img class="modal-content" id="modalImage" />
+                        </div>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="button-container" style="text-align: center">
+                <a href="{{ url_for('export_csv') }}" class="button">Descargar CSV</a>
+                <a href="{{ url_for('dashboard') }}" class="button3">Atras</a>
+            </div>
+            <div style="text-align: center">
+            </div>
+        </div>
+
+        <script>
+            // Iniciar DataTables con paginación y 10 registros por página
+            $(document).ready(function () {
+                $("#resultsTable").DataTable({
+                pageLength: 5,
+                lengthChange: false,
+                searching: false,
+                language: {
+                    paginate: {
+                    next: "Siguiente",
+                    previous: "Anterior",
+                    },
+                    info: "Mostrando página _PAGE_ de _PAGES_",
+                },
+                });
+            });
+            // Espera 3 segundos y luego oculta los mensajes flash
+            setTimeout(function () {
+                const flashMessages = document.querySelectorAll(".flash-message");
+                flashMessages.forEach(function (message) {
+                message.style.transition = "opacity 0.5s ease";
+                message.style.opacity = "0";
+                setTimeout(() => message.remove(), 500); // Remueve el mensaje después de que desaparezca
+                });
+            }, 3000); // 3000 ms = 3 segundos
+
+            function showImage(src) {
+                const modal = document.getElementById("imageModal");
+
+                const modalImg = document.getElementById("modalImage");
+
+                modal.style.display = "block";
+
+                modalImg.src = src;
+            }
+
+            document.querySelector(".close").onclick = function () {
+                document.getElementById("imageModal").style.display = "none";
+            };
+        </script>
+        <footer class="footer">
+            Sistema de detección automática de plaquetas mediante visión computacional
+            <br />
+            Universidad Señor de Sipán – Ingeniería de Sistemas <br />
+            2026<br />
+            José Carlos Laynes Castillo - Josué Enoc Espinoza Purisaca
+        </footer>
+  </body>
+</html>
